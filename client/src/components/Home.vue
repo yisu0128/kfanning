@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <div class="jumbotron text-center">
+    <div class="jumbotron text-center" style="background-color: #0B3B2E;">
       <h1 class="display-4">FANNINGK</h1>
     </div>
     <div class="container">
