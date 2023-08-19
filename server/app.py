@@ -1,61 +1,64 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, request, jsonify
 import oracledb
 
 app = Flask(__name__)
 
 # Database connection settings
-db_user = 'your_db_user'
-db_password = 'your_db_password'
-db_dsn = 'your_db_dsn'
+db_user = "kosa30"
+db_password = "kosa2023oraclE"
+db_dsn = "edudb_high"
+db_wallet_location = "C:\\Dev\\Python\\Wallet_edudb"  # Backslashes should be escaped
+db_wallet_password = "pythonoracle21"
 
-def execute_query(query, bind_variables=None):
-    connection = oracledb.connect(db_user, db_password, db_dsn)
+# Create a connection
+def create_connection():
+    connection = oracledb.connect(user=db_user, password=db_password, dsn=db_dsn,
+                                  config_dir=db_wallet_location, wallet_location=db_wallet_location,
+                                  wallet_password=db_wallet_password)
+    return connection
+
+@app.route('/')
+def index():
+    return "Welcome to the Oracle PL/SQL Package Demo with Flask!"
+
+@app.route('/create_moviesite', methods=['GET','POST'])
+def create_moviesite():
+    data = request.json
+    site_name = data.get('site_name')
+    province = data.get('province')
+    city = data.get('city')
+    street = data.get('street')
+    longitude = data.get('longitude')
+    latitude = data.get('latitude')
+
+    connection = create_connection()
     cursor = connection.cursor()
-    result = None
-    
+
     try:
-        if bind_variables:
-            result = cursor.execute(query, bind_variables)
-        else:
-            result = cursor.execute(query)
+        # Call the CreateMoviesite function
+        query = "BEGIN :result := MoviesitesPackage.CreateMoviesite(:site_name, :province, :city, :street, :longitude, :latitude); END;"
+        bind_variables = {
+            'result': oracledb.NUMBER,
+            'site_name': site_name,
+            'province': province,
+            'city': city,
+            'street': street,
+            'longitude': longitude,
+            'latitude': latitude
+        }
+        result = cursor.execute(query, bind_variables)
         connection.commit()
     except oracledb.DatabaseError as e:
         print("Error:", e)
         connection.rollback()
+        return jsonify({"error": str(e)}), 500
     finally:
         cursor.close()
         connection.close()
-    
-    return result
 
-@app.route('/')
-def index():
-    return "Welcome to the PL/SQL Package Demo!"
+    return jsonify({"site_id": result})
 
-@app.route('/create_comment', methods=['POST'])
-def create_comment():
-    # Parse request data
-    data = request.json
-    created_at = data.get('created_at')
-    modified_at = data.get('modified_at')
-    content = data.get('content')
-    posting_id = data.get('posting_id')
-    
-    # Call the CreateComment function
-    query = "BEGIN :result := CommentsPackage.CreateComment(:created_at, :modified_at, :content, :posting_id); END;"
-    bind_variables = {
-        'result': oracledb.NUMBER,
-        'created_at': created_at,
-        'modified_at': modified_at,
-        'content': content,
-        'posting_id': posting_id
-    }
-    result = execute_query(query, bind_variables)
-    
-    return jsonify({'comment_id': result})
-
-# Add routes for other functions (UpdateComment, DeleteComment, GetComment, GetCommentsByPosting)
-# Similar to the create_comment route above
+# ... (UpdateMoviesite, DeleteMoviesite, GetMoviesite, GetAllMoviesites 함수 구현)
 
 if __name__ == '__main__':
     app.run(debug=True)
