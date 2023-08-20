@@ -10,7 +10,8 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url))
+      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      'vue3-google-maps': 'vue3-google-maps/dist/vue3-google-maps.cjs.js'
     }
   }
 })
