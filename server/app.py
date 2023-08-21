@@ -1,26 +1,22 @@
 from flask import Flask, request, jsonify
 import oracledb
 
+
 app = Flask(__name__)
 
-# Database connection settings
-db_user = "kosa30"
-db_password = "kosa2023oraclE"
-db_dsn = "edudb_high"
-db_wallet_location = "C:\\Dev\\Python\\Wallet_edudb"  # Backslashes should be escaped
-db_wallet_password = "pythonoracle21"
+import oracledb
 
-# Create a connection
-def create_connection():
-    connection = oracledb.connect(user=db_user, password=db_password, dsn=db_dsn,
-                                  config_dir=db_wallet_location, wallet_location=db_wallet_location,
-                                  wallet_password=db_wallet_password)
-    return connection
-
+connection = oracledb.connect(user="kosa13", password="kosa2023oraclE", dsn="edudb_high",
+                              config_dir="C:\Dev\Python\Wallet_edudb",
+                              wallet_location="C:\Dev\Python\Wallet_edudb",
+                              wallet_password="pythonoracle21")
+cursor = connection.cursor()
+    
+    
 @app.route('/')
 def index():
     return "Welcome to the Oracle PL/SQL Package Demo with Flask!"
-
+    
 @app.route('/create_moviesite', methods=['GET','POST'])
 def create_moviesite():
     data = request.json
@@ -62,3 +58,5 @@ def create_moviesite():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+

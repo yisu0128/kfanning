@@ -1,5 +1,0 @@
-db_user = "kosa30"
-db_password = "kosa2023oraclE"
-db_dsn = "edudb_high"
-db_wallet_location = "C:\Dev\Python\Wallet_edudb"
-db_wallet_password = "pythonoracle21"
