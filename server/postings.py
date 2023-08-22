@@ -1,130 +1,76 @@
-#posting
-@app.route('/read_posting', methods=['GET'])
-def read_post():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
+from flask import request, jsonify
+import dbconnection as db
 
-        posting_id = request.args.get('posting_id')
-
-        result = cursor.callfunc("PostingsPackage.GetPosting", oracledb.CURSOR, [posting_id])
-        
-        postings = []
-
-        for row in result:
-            posting = {
-                'posting_id': row[0],
-                'title': row[1],
-                'content': row[2],
-                'image': row[3],
-                'created_at': row[4].strftime('%Y-%m-%d %H:%M:%S'),
-                'modified_at': row[5].strftime('%Y-%m-%d %H:%M:%S'),
-                'moviesites_sites_id': row[6],
-                'site_id': row[7]
-            }
-            postings.append(posting)
-
-        return jsonify({'postings': postings})
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        cursor.close()
-        connection.close()
-
-
-@app.route('/create_posting', methods=['POST'])
 def create_posting():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
+    connection = db.create_connection()
+    cursor = connection.cursor()
 
-        data = request.json  # JSON 데이터 받아오기
-        title = data.get('title')
-        content = data.get('content')
-        image = data.get('image')
-        created_at = data.get('created_at')
-        modified_at = data.get('modified_at')
-        moviesites_sites_id = data.get('moviesites_sites_id')
-        site_id = data.get('site_id')
+    title = request.json['title']
+    content = request.json['content']
+    image = request.json['image']
+    created_at = request.json['created_at']
+    modified_at = request.json['modified_at']
+    moviesites_sites_id = request.json['moviesites_sites_id']
+    site_id = request.json['site_id']
 
-        # Call the CreatePosting function from the package using callfunc
-        posting_id = cursor.callfunc("PostingsPackage.CreatePosting", oracledb.INTEGER, 
-                                     [title, content, image, created_at, modified_at, 
-                                      moviesites_sites_id, site_id])
-        connection.commit()
-        
-        return jsonify({'posting_id': posting_id, 'message': 'Posting created successfully'})
+    cursor.callfunc('PostingsPackage.CreatePosting', db.NUMBER,
+                    [title, content, image, created_at, modified_at, moviesites_sites_id, site_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    return jsonify({"status": "success"}), 201
 
-    finally:
-        cursor.close()
-        connection.close()
+def update_posting(posting_id):
+    connection = db.create_connection()
+    cursor = connection.cursor()
 
-@app.route('/update_posting', methods=['PUT'])
-def update_posting():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
+    title = request.json['title']
+    content = request.json['content']
+    image = request.json['image']
+    created_at = request.json['created_at']
+    modified_at = request.json['modified_at']
+    moviesites_sites_id = request.json['moviesites_sites_id']
+    site_id = request.json['site_id']
 
-        data = request.json  # JSON 데이터 받아오기
-        posting_id = data.get('posting_id')
+    cursor.callproc('PostingsPackage.UpdatePosting', [posting_id, title, content, image, created_at, modified_at, moviesites_sites_id, site_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-        # Retrieve the existing posting data
-        cursor.callproc("PostingsPackage.GetPosting", [posting_id])
-        existing_data = cursor.fetchone()
+    return jsonify({"status": "updated"}), 200
 
-        if not existing_data:
-            return jsonify({'error': 'Posting not found'}), 404
+def delete_posting(posting_id):
+    connection = db.create_connection()
+    cursor = connection.cursor()
 
-        # Parse JSON data and update relevant columns
-        title = data.get('title', existing_data[1])
-        content = data.get('content', existing_data[2])
-        image = data.get('image', existing_data[3])
-        created_at = data.get('created_at', existing_data[4])
-        modified_at = data.get('modified_at', existing_data[5])
-        moviesites_sites_id = data.get('moviesites_sites_id', existing_data[6])
-        site_id = data.get('site_id', existing_data[7])
+    cursor.callproc('PostingsPackage.DeletePosting', [posting_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-        # Call the UpdatePosting procedure to update the database
-        cursor.callproc("PostingsPackage.UpdatePosting", [
-            posting_id, title, content, image, created_at, modified_at,
-            moviesites_sites_id, site_id
-        ])
-        connection.commit()
+    return jsonify(message='Posting deleted successfully')
 
-        return jsonify({'posting_id': posting_id, 'message': 'Posting updated successfully'})
+def get_posting(posting_id):
+    connection = db.create_connection()
+    cursor = connection.cursor()
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    posting_ref_cursor = cursor.callfunc('PostingsPackage.GetPosting', db.CURSOR, [posting_id])
+    posting_data = []
+    for row in posting_ref_cursor:
+        row_as_dict = {desc[0]: value for desc, value in zip(posting_ref_cursor.description, row)}
+        posting_data.append(row_as_dict)
 
-    finally:
-        cursor.close()
-        connection.close()
+    return jsonify(posting_data)
 
-@app.route('/delete_posting', methods=['DELETE'])
-def delete_posting():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
+def get_postings_by_site(site_id):
+    connection = db.create_connection()
+    cursor = connection.cursor()
 
-        posting_id = request.args.get('posting_id')
+    postings_ref_cursor = cursor.callfunc('PostingsPackage.GetPostingsBySite', db.CURSOR, [site_id])
+    postings_data = []
+    for row in postings_ref_cursor:
+        row_as_dict = {desc[0]: value for desc, value in zip(postings_ref_cursor.description, row)}
+        postings_data.append(row_as_dict)
 
-        # Call the DeletePosting procedure to delete the posting
-        cursor.callproc("PostingsPackage.DeletePosting", [posting_id])
-        connection.commit()
-
-        return jsonify({'posting_id': posting_id, 'message': 'Posting deleted successfully'})
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        cursor.close()
-        connection.close()
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    return jsonify(postings_data)

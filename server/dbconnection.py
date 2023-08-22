@@ -7,4 +7,6 @@ def create_connection():
                                   wallet_password="pythonoracle21")
     return connection
 
+
+
 CURSOR = oracledb.CURSOR

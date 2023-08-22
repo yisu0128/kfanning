@@ -6,9 +6,14 @@ import moviesites
 
 app = Flask(__name__)
 
+
+@app.route('/')
+def index():
+    return 'FANNINGK'
+
 CORS(app)
 
-app.add_url_rule('/add_moviesite', view_func=moviesites.add_moviesite, methods=['POST'])
+#app.add_url_rule('/add_moviesite', view_func=moviesites.add_moviesite, methods=['POST'])
 app.add_url_rule('/get_moviesite/<int:site_id>', view_func=moviesites.get_moviesite, methods=['GET'])
 app.add_url_rule('/get_all_moviesites', view_func=moviesites.get_all_moviesites, methods=['GET'])
 app.add_url_rule('/update_moviesite/<int:site_id>', view_func=moviesites.update_moviesite, methods=['PUT'])
