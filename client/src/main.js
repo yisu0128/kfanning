@@ -1,20 +1,22 @@
-import { createApp } from 'vue'
-import App from './App.vue'
-import router from './router'
-import 'bootstrap/dist/css/bootstrap.css'; // 부트스트랩 스타일 추가
-import 'bootstrap/dist/js/bootstrap.js'; // 부트스트랩 스크립트 추가
-import * as VueGoogleMaps from "vue3-google-maps" // Import package
+import { createApp } from 'vue';
+import App from './App.vue';
+import router from './router';
+import 'bootstrap/dist/css/bootstrap.css';
+import 'bootstrap/dist/js/bootstrap.js';
+import SearchMovieSite from './components/SearchMovieSite.vue'; // 추가
+import CreateMovieSite from './components/CreateMovieSite.vue'; // 추가
+import EditMovieSite from './components/EditMovieSite.vue'; 
+import DeleteMovieSite from './components/DeleteMovieSite.vue'; // 추가
+import ReadMovieSite from './components/ReadMovieSite.vue'; 
 
-const app = createApp(App)
+const app = createApp(App);
 
-app.use(router)
+app.use(router);
 
-app.use(VueGoogleMaps, {
-  load: {
-    key: "AIzaSyBVjq1GKBNCEJxz2-SSSi5E_JHICuPl8dA",
-    libraries: "places",
-    region: "KR"
-  }
-})
+app.component('search-movie-site', SearchMovieSite); // 추가
+app.component('create-movie-site', CreateMovieSite); // 추가
+app.component('edit-movie-site', EditMovieSite); // 추가
+app.component('delete-movie-site', DeleteMovieSite);
+app.component('read-movie-site', ReadMovieSite);
 
-app.mount('#app')
+app.mount('#app');
