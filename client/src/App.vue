@@ -1,13 +1,15 @@
 <template>
-  <RouterView />
+  <div id="app">
+    <router-view></router-view>
+  </div>
 </template>
 
-<script setup>
-import { RouterView } from 'vue-router'
+<script>
+export default {
+  name: 'App',
+};
 </script>
 
 <style>
-#app {
-  margin-top: 60px
-}
+/* Add your styles here */
 </style>
