@@ -2,6 +2,9 @@
   <div>
     <h1>Movie Sites</h1>
     
+    <input v-model="searchQuery" placeholder="Search for a movie site" />
+    <button @click="searchMovieSites">Search</button>
+    
     <table>
       <thead>
         <tr>
@@ -10,9 +13,9 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="movieSite in movieSites" :key="movieSite.SITE_ID">
+        <tr v-for="movieSite in filteredMovieSites" :key="movieSite.SITE_ID">
           <td>{{ movieSite.SITE_NAME }}</td>
-          <td>{{ movieSite.PROVINCE }}, {{ movieSite.CITY }}, {{ movieSite.STREET }}</td>
+          <td>{{ movieSite.PROVINCE }}, {{ movieSite.CITY }}</td>
         </tr>
       </tbody>
     </table>
@@ -26,8 +29,20 @@ export default {
   name: 'MovieSiteList',
   data() {
     return {
+      searchQuery: '',
       movieSites: [],
     };
+  },
+  computed: {
+    filteredMovieSites() {
+      if (this.searchQuery.trim() === '') {
+        return this.movieSites;
+      } else {
+        return this.movieSites.filter(movieSite =>
+          movieSite.SITE_NAME.toLowerCase().includes(this.searchQuery.toLowerCase())
+        );
+      }
+    },
   },
   methods: {
     async fetchMovieSites() {
@@ -38,10 +53,12 @@ export default {
         console.error('Error fetching movie sites:', error);
       }
     },
+    searchMovieSites() {
+      // No need to fetch data again; computed property handles the filtering
+    },
   },
   mounted() {
     this.fetchMovieSites();
   },
 };
 </script>
-
