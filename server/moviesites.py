@@ -1,9 +1,6 @@
 from flask import request, jsonify
 import dbconnection as db
 
-#데이터 베이스에 191까지 identity 로 부여된 site_id라는 default id 키가 있는데, 새로 인풋을 받을 때, 1부터 플라스크가 id를 받아 오류가 생기는 듯함. 
-#해당 오류 혼자 해결 역부족. 교수님께 여쭤보기
-'''
 def add_moviesite():
     connection = db.create_connection()
     cursor = connection.cursor()
@@ -14,15 +11,13 @@ def add_moviesite():
     longtitude = request.json['longtitude']
     latitude = request.json['latitude']
     
-    
     cursor.callfunc('MoviesitesPackage.CreateMoviesite',
-                    [site_name, province, city, street, longtitude, latitude])
+                    int, [site_name, province, city, street, longtitude, latitude])
     connection.commit()
     cursor.close()
     connection.close()
 
     return jsonify({"status": "success"}), 201
-'''
 
 def get_moviesite(site_id):
     connection = db.create_connection()

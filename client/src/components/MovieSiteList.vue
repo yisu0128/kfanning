@@ -15,7 +15,7 @@
       <tbody>
         <tr v-for="movieSite in filteredMovieSites" :key="movieSite.SITE_ID">
           <td>{{ movieSite.SITE_NAME }}</td>
-          <td>{{ movieSite.PROVINCE }}, {{ movieSite.CITY }}</td>
+          <td>{{ movieSite.PROVINCE }}, {{ movieSite.CITY }}, {{ movieSite.STREET }}</td>
         </tr>
       </tbody>
     </table>
