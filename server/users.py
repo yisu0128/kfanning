@@ -1,115 +1,59 @@
-@app.route('/read_comment', methods=['GET'])
-def read_comment():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
+from flask import request, jsonify
+import dbconnection as db
 
-        comment_id = request.args.get('comment_id')
+def create_user():
+    connection = db.create_connection()
+    cursor = connection.cursor()
+    user_name = request.json['user_name']
+    user_pwd = request.json['user_pwd']
+    cursor.callfunc('UsersPackage.CreateUser',
+                    int, [user_name, user_pwd])
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-        result = cursor.callfunc("CommentsPackage.GetComment", oracledb.CURSOR, [comment_id])
-        
-        comments = []
+    return jsonify({"status": "success"}), 201
 
-        for row in result:
-            comment = {
-                'comment_id': row[0],
-                'created_at': row[1],
-                'modified_at': row[2],
-                'content': row[3],
-                'posting_id': row[4]
-            }
-            comments.append(comment)
+def get_user(user_id):
+    connection = db.create_connection()
+    cursor = connection.cursor()
+    user_ref_cursor = cursor.callfunc('UsersPackage.GetUser', db.CURSOR, [user_id])
+    comment_data = []
+    for row in user_ref_cursor:
+        row_as_dict = {desc[0]: value for desc, value in zip(user_ref_cursor.description, row)}
+        comment_data.append(row_as_dict)
+    
+    return jsonify(comment_data)
 
-        return jsonify({'comments': comments})
+def get_all_users():
+    connection = db.create_connection()    
+    cursor = connection.cursor()
+    user_ref_cursor = cursor.callfunc('UsersPackage.GetAllUsers', db.CURSOR)
+    users_data = []
+    for row in user_ref_cursor:
+        row_as_dict = {desc[0]: value for desc, value in zip(user_ref_cursor.description, row)}
+        users_data.append(row_as_dict)
+    return jsonify(users_data)
 
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+def update_user(user_id):
+    connection = db.create_connection() 
+    cursor = connection.cursor()
+    user_name = request.json['user_name']
+    user_pwd = request.json['user_pwd']
+    
+    cursor.callproc('UsersPackage.UpdateUser', [user_id, user_name, user_pwd])
+    connection.commit()
+    
+    return jsonify({"status": "updated"}), 200
 
-    finally:
-        cursor.close()
-        connection.close()
-        
 
+    
+def delete_user(user_id):
+    connection = db.create_connection() 
+    cursor = connection.cursor()
+    cursor.callproc('UsersPackage.DeleteUser', [user_id])
+    connection.commit()
+    cursor.close()
+    connection.close()
 
-@app.route('/create_comment', methods=['POST'])
-def create_comment():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
-
-        data = request.json
-        created_at = data.get('created_at')
-        modified_at = data.get('modified_at')
-        content = data.get('content')
-        posting_id = data.get('posting_id')
-
-        comment_id = cursor.callfunc("CommentsPackage.CreateComment", oracledb.INTEGER,
-                                     [created_at, modified_at, content, posting_id])
-        connection.commit()
-
-        return jsonify({'comment_id': comment_id, 'message': 'Comment created successfully'})
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        cursor.close()
-        connection.close()
-
-@app.route('/update_comment', methods=['PUT'])
-def update_comment():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
-
-        data = request.json
-        comment_id = data.get('comment_id')
-
-        cursor.callproc("CommentsPackage.GetComment", [comment_id])
-        existing_data = cursor.fetchone()
-
-        if not existing_data:
-            return jsonify({'error': 'Comment not found'}), 404
-
-        created_at = data.get('created_at', existing_data[1])
-        modified_at = data.get('modified_at', existing_data[2])
-        content = data.get('content', existing_data[3])
-        posting_id = data.get('posting_id', existing_data[4])
-
-        cursor.callproc("CommentsPackage.UpdateComment", [
-            comment_id, created_at, modified_at, content, posting_id
-        ])
-        connection.commit()
-
-        return jsonify({'comment_id': comment_id, 'message': 'Comment updated successfully'})
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        cursor.close()
-        connection.close()
-
-@app.route('/delete_comment', methods=['DELETE'])
-def delete_comment():
-    try:
-        connection = create_connection()
-        cursor = connection.cursor()
-
-        comment_id = request.args.get('comment_id')
-
-        cursor.callproc("CommentsPackage.DeleteComment", [comment_id])
-        connection.commit()
-
-        return jsonify({'comment_id': comment_id, 'message': 'Comment deleted successfully'})
-
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-    finally:
-        cursor.close()
-        connection.close()
-        
-
-if __name__ == '__main__':
-    app.run(debug=True)
+    return jsonify(message= 'User deleted successfully')
